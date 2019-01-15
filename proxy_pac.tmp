@@ -1,0 +1,7 @@
+
+function FindProxyForURL(url, host) {
+	if (check_ip(dnsResolve(host)))
+		return "HTTPS 127.0.0.1"; // IP in list
+	else
+		return "DIRECT";          // IP not in list
+}
