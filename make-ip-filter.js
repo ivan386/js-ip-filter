@@ -29,7 +29,7 @@ function make_ip_filter(ip_list)
 	)
 	
 	// Сортируем
-	.sort((a, b) => a > b)
+	.sort((a, b) => a - b)
 	
 	// Вычисляем дельту между значениями IP
 	.map((ip, index, ip_array) =>
