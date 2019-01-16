@@ -11,7 +11,7 @@ function make_ip_filter(ip_list)
 	// Убираем всё лишнее
 	.reduce((new_list, value) =>
 	{
-		if (/^([0-9]+\.){3}[0-9]+$/.test(value))
+		if (/^\s*([0-9]+\.){3}[0-9]+\s*$/.test(value))
 			new_list.push(value);
 
 		return new_list;

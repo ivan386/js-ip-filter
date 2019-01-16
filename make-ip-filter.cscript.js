@@ -15,7 +15,7 @@ function make_ip_filter(ip_list)
 	
 	for (var index = 0; index < ip_list.length; index++) 
 	{
-		if (/^([0-9]+\.){3}[0-9]+$/.test(ip_list[index]))
+		if (/^\s*([0-9]+\.){3}[0-9]+\s*$/.test(ip_list[index]))
 			new_list.push(ip_to_number(ip_list[index]));
 	}
 	
@@ -76,4 +76,9 @@ function make_ip_filter(ip_list)
 }
 
 if (typeof(WScript) != "undefined")
-	WScript.Echo('ip_filter="' + make_ip_filter(WScript.StdIn.ReadAll().split(",\n")) + '";');
+{
+	var ip_list = WScript.StdIn.ReadAll().split(",");
+	var ip_filter = make_ip_filter(ip_list);
+	WScript.Echo('ip_filter="' + ip_filter + '";');
+}
+	
