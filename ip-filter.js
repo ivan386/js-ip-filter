@@ -39,9 +39,9 @@ function ip_to_number(ip_string)
 {
 	for (var index = 0, ip_number = 0
 		, octets = ip_string.split('.')
-		; index < ip_string.length
+		; octets.length && index < 4
 		; index++ )
-		ip_number |= octets[index] << (8*(3-index));
+		ip_number |= parseInt(octets.pop(), 10) << (8*index);
 	
 	return ip_number;
 }
