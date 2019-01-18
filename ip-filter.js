@@ -1,7 +1,7 @@
 
 function unpack_ip_filter(ip_filter)
 {
-	ip_filter = ip_filter.replace(/([0-9a-z])-/g, '$1 -').split(' ');
+	ip_filter = ip_filter.match(/-?[0-9a-z]+/g);
 	
 	var ip_number = 0;
 	var repeat = 0;
