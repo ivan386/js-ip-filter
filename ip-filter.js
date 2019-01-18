@@ -5,7 +5,7 @@ function unpack_ip_filter(ip_filter)
 	
 	var ip_number = 0;
 	var repeat = 0;
-	var ip_dict = {};
+	var ip_list = [];
 
 	for (var index = 0; index < ip_filter.length; index++)
 	{
@@ -14,9 +14,8 @@ function unpack_ip_filter(ip_filter)
 		if (index == 0 || value > 0)
 		{
 			ip_number += (repeat = value);
-			ip_dict[ip_number] = true;
+			ip_list.push(ip_number);
 		}
-			
 		else
 		{
 			for ( var counter = value
@@ -24,12 +23,12 @@ function unpack_ip_filter(ip_filter)
 				; counter++ )
 			{
 				ip_number += repeat;
-				ip_dict[ip_number] = true;
+				ip_list.push(ip_number);
 			}
 		}
 	}
 	
-	return ip_dict
+	return ip_list
 }
 
 if (typeof(ip_filter) != "undefined")
@@ -48,5 +47,19 @@ function ip_to_number(ip_string)
 
 function check_ip(ip)
 {
-	return ip_filter[ip_to_number(ip)]
+	var ipn = ip_to_number(ip)
+	
+	if (typeof(ip_filter.indexOf) == "undefined")
+		for (var i = 0; i < ip_filter.length; i++)
+		{
+			if (ipn == ip_filter[i])
+				return true;
+			else if (ipn < ip_filter[i])
+				return false;
+		}
+	else 
+		return ip_filter.indexOf(ipn) >= 0;
+			
+			
+	return false
 }
