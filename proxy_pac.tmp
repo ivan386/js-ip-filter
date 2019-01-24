@@ -1,7 +1,11 @@
 
 function FindProxyForURL(url, host) {
-	if (check_ip(dnsResolve(host)))
-		return "HTTPS 127.0.0.1"; // IP in list
+	var ip = dnsResolve(host)
+	
+	if (check_ip(ip))
+		alert("IP In list: "+ip+" "+host+" "+url);
 	else
-		return "DIRECT";          // IP not in list
+		alert("IP Not in list: "+ip+" "+host+" "+url);
+		
+	return "DIRECT";
 }

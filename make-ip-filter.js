@@ -4,6 +4,10 @@
 // out:
 //  "-zij2io 2jhsi 8g 9u3m 4xewq 7e 2m 3u 2i 4s ..."
 
+/*
+	Эта версия не поддерживает диапазоны.
+*/
+
 function make_ip_filter(ip_list)
 {
 	return ip_list
@@ -11,7 +15,7 @@ function make_ip_filter(ip_list)
 	// Убираем всё лишнее
 	.reduce((new_list, value) =>
 	{
-		if (/^\s*([0-9]+\.){3}[0-9]+\s*$/.test(value))
+		if (/^\s*([0-9]+\.){3}[0-9]+\s*$/.test(value)) // Это IP адрес
 			new_list.push(value);
 
 		return new_list;

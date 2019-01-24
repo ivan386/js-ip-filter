@@ -1,3 +1,27 @@
+function search(list, value)
+{
+	var start = 0
+	var size = list.length
+	var pos = list.length / 2 | 0
+	for(;size>0;)
+	{
+		var list_value = list[start + pos]
+		if (list_value == value)
+			return start + pos;
+		else if (list_value > value)
+		{
+			size = pos;
+			pos = (size / 2) | 0
+		}
+		else
+		{
+			size = size - pos - 1
+			start = start + pos + 1
+			pos = (size / 2) | 0
+		}
+	}
+	return -1;
+}
 
 function set_bit(bits_array, position)
 {
@@ -15,20 +39,23 @@ function get_bit(bits_array, position)
 
 function unpack_ip_filter(ip_filter)
 {
-	ip_filter = ip_filter.match(/-?[0-9a-z]+/g);
+	ip_filter = ip_filter.match(/-?[0-9a-z]+\/?[0-9a-z]*/g);
 	
 	var ip_number = 0;
 	var repeat = 0;
 	var ip_list = [];
+	var ranges = {};
 
 	for (var index = 0; index < ip_filter.length; index++)
 	{
-		var value = parseInt(ip_filter[index], 36);
+		var ip_bits = ip_filter[index].split("/")
+
+		var value = parseInt(ip_bits[0], 36);
 		
 		if (index == 0 || value > 0)
 		{
 			ip_number += (repeat = value);
-			set_bit(ip_list, ip_number);
+			ip_list.push(ip_number);
 		}
 		else
 		{
@@ -37,12 +64,22 @@ function unpack_ip_filter(ip_filter)
 				; counter++ )
 			{
 				ip_number += repeat;
-				set_bit(ip_list, ip_number);
+				ip_list.push(ip_number);
 			}
 		}
+		
+		if (ip_bits.length == 2)
+		{
+			var bits = parseInt(ip_bits[1], 36);
+			if (typeof(ranges[bits])=="undefined")
+				ranges[bits] = {};
+
+			set_bit(ranges[bits], ip_number >>> bits)
+			ip_number += (1 << bits) - 1
+		}
 	}
-	
-	return ip_list
+
+	return {ip_list:ip_list, ranges:ranges}
 }
 
 if (typeof(ip_filter) != "undefined")
@@ -61,7 +98,15 @@ function ip_to_number(ip_string)
 
 function check_ip(ip)
 {
-	var ipn = ip_to_number(ip)
-
-	return get_bit(ip_filter, ipn)
+	if(ip)
+	{
+		var ipn = ip_to_number(ip)
+		if (search(ip_filter.ip_list, ipn) >= 0)
+			return true;
+		else
+			for (bits in ip_filter.ranges)
+				if (get_bit(ip_filter.ranges[bits], ipn >>> bits))
+					return true;
+	}
+	return false;
 }
