@@ -139,6 +139,7 @@ if (typeof(WScript) != "undefined")
 {
 	var ip_list = WScript.StdIn.ReadAll().replace(/,/g,"").split("\n");
 	var ip_filter = make_ip_filter(ip_list);
-	WScript.Echo('ip_filter="' + ip_filter + '";');
+	WScript.Echo()
+	WScript.Echo('var ip_filter="' + ip_filter + '";');
 }
 	

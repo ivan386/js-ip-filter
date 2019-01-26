@@ -2,7 +2,7 @@
 
 if (typeof(WScript) != "undefined")
 {
-	var ip_list = WScript.StdIn.ReadAll().match(/[^,\n]+/g);
+	var ip_list = WScript.StdIn.ReadAll().match(/[^,\s]+/g);
 	var not_found = 0
 	for (var i=0; i < ip_list.length; i++)
 	{
