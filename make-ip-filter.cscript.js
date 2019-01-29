@@ -17,22 +17,74 @@ function get_ip(value, end)
 		return value;
 }
 
-function make_ip_filter(ip_list)
+function to_bitset(ip_list)
 {
 	var new_list = []
-	
+	var buffer = []
+	var bits = 0;
+	var gto = 0;
+	var mgto = 3;
 	for (var index = 0; index < ip_list.length; index++) 
 	{
-		if (/^\s*([0-9]+\.){3}[0-9]+\s*$/.test(ip_list[index])) // Это IP адрес
-			new_list.push(ip_to_number(ip_list[index]));
-		else if (/^\s*([0-9]+\.){3}[0-9]+\/[0-9]+\s*$/.test(ip_list[index])) // Это диапазон
+		var value = ip_list[index]
+		if 	(typeof(value) == "number")
 		{
-			var ip_bits = ip_list[index].split("/");
-			new_list.push([ip_to_number(ip_bits[0]), 32 - parseInt(ip_bits[1])])
+			if (bits + value > 31 && buffer.length >= 4 && gto >= mgto)
+			{
+				for(var acum = -1, bitset = 0; buffer.length;)
+					bitset |= 1 << (acum+=buffer.shift());
+				
+				new_list.push({bitset: bitset});
+				gto = bits = 0;
+			}
+			else
+				while(buffer.length && bits + value > 31)
+				{
+					if ( buffer.length > 1 )
+						gto -= buffer[0] != buffer[1] ? 1 : 0;
+					
+					bits -= buffer[0];
+					new_list.push(buffer.shift());
+				}
+				
+			if ( buffer.length > 0 )
+				gto += buffer[buffer.length - 1] != value ? 1 : 0;
+			
+			bits += value;
+			buffer.push(value);
+		}
+		else
+		{
+			if (buffer.length >= 4 && gto >= mgto)
+			{
+				for(var acum = -1, bitset = 0; buffer.length;)
+					bitset |= 1 << (acum+=buffer.shift());
+				new_list.push({bitset: bitset})
+			}
+			else
+				while(buffer.length)
+					new_list.push(buffer.shift());
+			
+			gto = bits = 0;
+			new_list.push(value);
 		}
 	}
 	
-	ip_list = new_list.sort(function(a, b)
+	if (buffer.length >= 5 && buffer[0] > 1 && gto >= mgto)
+	{
+		for(var acum = -1, mask = 0; buffer.length;)
+			mask |= 1 << (acum+=buffer.shift());
+		new_list.push({bits: mask})
+	}
+	while(buffer.length)
+		new_list.push(buffer.shift());
+	
+	return new_list;
+}
+
+function to_delta(ip_list)
+{
+	ip_list = ip_list.sort(function(a, b)
 	{
 		if ( typeof(a) == "object" && typeof(b) == "object" )
 		{
@@ -61,8 +113,8 @@ function make_ip_filter(ip_list)
 		return a - b;
 	})
 	
-	new_list = []
-	
+	var new_list = [];
+	var last_ip;
 	for (var index = 0; index < ip_list.length; index++) 
 	{
 		var ip = ip_list[index]
@@ -72,7 +124,7 @@ function make_ip_filter(ip_list)
 		else
 		{
 			// Из текущего значения вычитаем предидущее
-			var delta_ip = get_ip(ip, false) - get_ip(ip_list[index - 1], true);
+			var delta_ip = get_ip(ip, false) - get_ip(last_ip, true);
 			if (typeof(ip) == "object")
 				new_list.push([delta_ip, ip[1]]);
 			else if (delta_ip > 0)
@@ -88,9 +140,29 @@ function make_ip_filter(ip_list)
 			ip_list[index] = ip;
 		}
 		
+		last_ip = ip
 	}
 	
-	ip_list = new_list
+	return new_list
+}
+
+function make_ip_filter(ip_list)
+{
+	var new_list = []
+	
+	for (var index = 0; index < ip_list.length; index++) 
+	{
+		if (/^\s*([0-9]+\.){3}[0-9]+\s*$/.test(ip_list[index])) // Это IP адрес
+			new_list.push(ip_to_number(ip_list[index]));
+		else if (/^\s*([0-9]+\.){3}[0-9]+\/[0-9]+\s*$/.test(ip_list[index])) // Это диапазон
+		{
+			var ip_bits = ip_list[index].split("/");
+			new_list.push([ip_to_number(ip_bits[0]), 32 - parseInt(ip_bits[1])])
+		}
+	}
+	
+
+	ip_list = to_bitset(to_delta(new_list))
 	new_list = []
 	
 	for (var index = 0; index < ip_list.length; index++) 
@@ -126,18 +198,22 @@ function make_ip_filter(ip_list)
 	for (var index = 0; index < ip_list.length; index++) 
 	{
 		if (typeof(ip_list[index]) == "object")
-			ip_list[index] = ip_list[index][0].toString(36) + "/" + ip_list[index][1].toString(36);
+		{
+			if (ip_list[index].push) // range
+				ip_list[index] = (index > 0 ? ' ' : '') + ip_list[index][0].toString(36) + "/" + ip_list[index][1].toString(36);
+			else if(ip_list[index].bitset) // bitset
+				ip_list[index] = "+" + ip_list[index].bitset.toString(36);
+		}
 		else
-			ip_list[index] = ip_list[index].toString(36);
+			ip_list[index] = (index > 0 && ip_list[index] >= 0 ? ' ' : '') + ip_list[index].toString(36);
 	}
 	
-	//Убираем лишние пробелы перед знаком '-'
-	return ip_list.join(' ').replace(/ -/g, '-')
+	return ip_list.join('')
 }
 
 if (typeof(WScript) != "undefined")
 {
-	var ip_list = WScript.StdIn.ReadAll().replace(/,/g,"").split("\n");
+	var ip_list = WScript.StdIn.ReadAll().match(/[^,\s]+/g)
 	var ip_filter = make_ip_filter(ip_list);
 	WScript.Echo()
 	WScript.Echo('var ip_filter="' + ip_filter + '";');

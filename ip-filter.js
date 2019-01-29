@@ -39,7 +39,7 @@ function get_bit(bits_array, position)
 
 function unpack_ip_filter(ip_filter)
 {
-	ip_filter = ip_filter.match(/-?[0-9a-z]+\/?[0-9a-z]*/g);
+	ip_filter = ip_filter.match(/[+-]?[0-9a-z]+\/?[0-9a-z]*/g);
 	
 	var ip_number = 0;
 	var repeat = 0;
@@ -52,10 +52,23 @@ function unpack_ip_filter(ip_filter)
 
 		var value = parseInt(ip_bits[0], 36);
 		
-		if (index == 0 || value > 0)
+		if ( ip_bits[0].indexOf("+") === 0 )
+		{
+			for(var acum = 1; value; ++acum, value >>>= 1)
+			{
+				if (value & 1)
+				{
+					ip_number += acum;
+					ip_list.push(ip_number);
+					acum = 0;
+				}
+			}
+		}
+		else if (index == 0 || value > 0)
 		{
 			ip_number += (repeat = value);
-			ip_list.push(ip_number);
+			if (ip_bits.length == 1)
+				ip_list.push(ip_number);
 		}
 		else
 		{
@@ -64,7 +77,8 @@ function unpack_ip_filter(ip_filter)
 				; counter++ )
 			{
 				ip_number += repeat;
-				ip_list.push(ip_number);
+				if (ip_bits.length == 1 || counter == 0)
+					ip_list.push(ip_number);
 			}
 		}
 		
