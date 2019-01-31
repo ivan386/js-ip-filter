@@ -45,6 +45,7 @@ function unpack_ip_filter(ip_filter)
 	var repeat = 0;
 	var ip_list = [];
 	var ranges = {};
+	var bitset = {};
 
 	for (var index = 0; index < ip_filter.length; index++)
 	{
@@ -59,7 +60,7 @@ function unpack_ip_filter(ip_filter)
 				if (value & 1)
 				{
 					ip_number += acum;
-					ip_list.push(ip_number);
+					set_bit(bitset, ip_number);
 					acum = 0;
 				}
 			}
@@ -93,7 +94,7 @@ function unpack_ip_filter(ip_filter)
 		}
 	}
 
-	return {ip_list:ip_list, ranges:ranges}
+	return {ip_list:ip_list, ranges:ranges, bitset:bitset}
 }
 
 if (typeof(ip_filter) != "undefined")
@@ -115,7 +116,9 @@ function check_ip(ip)
 	if(ip)
 	{
 		var ipn = ip_to_number(ip)
-		if (search(ip_filter.ip_list, ipn) >= 0)
+		if (get_bit(ip_filter.bitset, ipn))
+			return true;
+		else if (search(ip_filter.ip_list, ipn) >= 0)
 			return true;
 		else
 			for (bits in ip_filter.ranges)
