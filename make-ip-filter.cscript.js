@@ -20,7 +20,7 @@ function get_ip(value, end)
 
 function to_bitset(ip_list)
 {
-	/*/
+	//*/
 	WScript.StdErr.Write("Bitset\n")
 	var start_time = new Date()
 	//*/
@@ -76,7 +76,7 @@ function to_bitset(ip_list)
 		}
 	}
 	
-	if (buffer.length >= 5 && buffer[0] > 1 && gto >= mgto)
+	if (buffer.length >= 4 && gto >= mgto)
 	{
 		for(var acum = -1, mask = 0; buffer.length;)
 			mask |= 1 << (acum+=buffer.shift());
@@ -85,7 +85,7 @@ function to_bitset(ip_list)
 	while(buffer.length)
 		new_list.push(buffer.shift());
 	
-	/*/
+	//*/
 	WScript.StdErr.Write((new Date()) - start_time  + "\n")
 	//*/
 	
@@ -94,7 +94,7 @@ function to_bitset(ip_list)
 
 function to_delta(ip_list)
 {
-	/*/
+	//*/
 	WScript.StdErr.Write("Delta sort\n")
 	var start_time = new Date()
 	//*/
@@ -129,7 +129,7 @@ function to_delta(ip_list)
 		
 	})
 	
-	/*/
+	//*/
 	WScript.StdErr.Write((new Date()) - start_time  + "\n")
 	WScript.StdErr.Write("Delta calc\n")
 	var start_time = new Date()
@@ -165,7 +165,7 @@ function to_delta(ip_list)
 		last_ip = ip
 	}
 	
-	/*/
+	//*/
 	WScript.StdErr.Write((new Date()) - start_time  + "\n") 
 	//*/
 	
@@ -174,7 +174,7 @@ function to_delta(ip_list)
 
 function parse(ip_list)
 {
-	/*/
+	//*/
 	WScript.StdErr.Write("Parsing\n")
 	var start_time = new Date()
 	//*/
@@ -195,7 +195,7 @@ function parse(ip_list)
 		}
 	}
 	
-	/*/
+	//*/
 	WScript.StdErr.Write((new Date()) - start_time  + "\n")
 	//*/
 	
@@ -204,7 +204,7 @@ function parse(ip_list)
 
 function reduce(ip_list)
 {
-	/*/
+	//*/
 	WScript.StdErr.Write("Reduce\n")
 	var start_time = new Date();
 	//*/
@@ -238,7 +238,7 @@ function reduce(ip_list)
 		}
 	}
 	
-	/*/
+	//*/
 	WScript.StdErr.Write((new Date()) - start_time  + "\n")
 	//*/
 	
@@ -247,7 +247,7 @@ function reduce(ip_list)
 
 function to_string(ip_list)
 {
-	/*/
+	//*/
 	WScript.StdErr.Write("Print\n")
 	var start_time = new Date()
 	//*/
@@ -265,7 +265,7 @@ function to_string(ip_list)
 			ip_list[index] = (index > 0 && ip_list[index] >= 0 ? ' ' : '') + ip_list[index].toString(36);
 	}
 	
-	/*/
+	//*/
 	WScript.StdErr.Write((new Date()) - start_time  + "\n")
 	//*/
 	
