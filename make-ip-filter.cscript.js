@@ -1,3 +1,4 @@
+
 function ip_to_number(ip_string)
 {
 	for (var index = 0, ip_number = 0
@@ -19,6 +20,11 @@ function get_ip(value, end)
 
 function to_bitset(ip_list)
 {
+	/*/
+	WScript.StdErr.Write("Bitset\n")
+	var start_time = new Date()
+	//*/
+	
 	var new_list = []
 	var buffer = []
 	var bits = 0;
@@ -79,14 +85,28 @@ function to_bitset(ip_list)
 	while(buffer.length)
 		new_list.push(buffer.shift());
 	
+	/*/
+	WScript.StdErr.Write((new Date()) - start_time  + "\n")
+	//*/
+	
 	return new_list;
 }
 
 function to_delta(ip_list)
 {
+	/*/
+	WScript.StdErr.Write("Delta sort\n")
+	var start_time = new Date()
+	//*/
+	
 	ip_list = ip_list.sort(function(a, b)
 	{
-		if ( typeof(a) == "object" && typeof(b) == "object" )
+		var diff = a - b;
+		
+		if (diff > 0 || diff < 0 || diff == 0)
+			return diff;
+		
+		if ( typeof(a) == typeof(b) )
 		{
 			if (a[0] == b[0]) // Два диапазона начинаются в одной точке
 				return b[1] - a[1]; // Ставим больший диапазон раньше
@@ -101,17 +121,19 @@ function to_delta(ip_list)
 			
 			return a[0] - b;
 		}
+
+		if ( a == b[0] )
+			return 1; // Ставим диапазон 'b' раньше IP адреса 'a' который в него входит
 		
-		if ( typeof(b) == "object" )
-		{
-			if ( a == b[0] )
-				return 1; // Ставим диапазон 'b' раньше IP адреса 'a' который в него входит
-			
-			return a - b[0];
-		}
+		return a - b[0];
 		
-		return a - b;
 	})
+	
+	/*/
+	WScript.StdErr.Write((new Date()) - start_time  + "\n")
+	WScript.StdErr.Write("Delta calc\n")
+	var start_time = new Date()
+	//*/
 	
 	var new_list = [];
 	var last_ip;
@@ -143,28 +165,51 @@ function to_delta(ip_list)
 		last_ip = ip
 	}
 	
-	return new_list
+	/*/
+	WScript.StdErr.Write((new Date()) - start_time  + "\n") 
+	//*/
+	
+	return new_list;
 }
 
-function make_ip_filter(ip_list)
+function parse(ip_list)
 {
-	var new_list = []
+	/*/
+	WScript.StdErr.Write("Parsing\n")
+	var start_time = new Date()
+	//*/
 	
+	var new_list = []
+	var tester = /^\s*([0-9]+\.){3}[0-9]+\/?[0-9]*\s*$/
+
 	for (var index = 0; index < ip_list.length; index++) 
 	{
-		if (/^\s*([0-9]+\.){3}[0-9]+\s*$/.test(ip_list[index])) // Это IP адрес
-			new_list.push(ip_to_number(ip_list[index]));
-		else if (/^\s*([0-9]+\.){3}[0-9]+\/[0-9]+\s*$/.test(ip_list[index])) // Это диапазон
+		var ip_range = ip_list[index]
+		if (tester.test(ip_range)) // Это диапазон или ip
 		{
-			var ip_bits = ip_list[index].split("/");
-			new_list.push([ip_to_number(ip_bits[0]), 32 - parseInt(ip_bits[1])])
+			var ip_bits = ip_range.split("/");
+			if (ip_bits.length == 2)
+				new_list.push([ip_to_number(ip_bits[0]), 32 - parseInt(ip_bits[1])]);
+			else
+				new_list.push(ip_to_number(ip_range));
 		}
 	}
 	
-
-	ip_list = to_bitset(to_delta(new_list))
-	new_list = []
+	/*/
+	WScript.StdErr.Write((new Date()) - start_time  + "\n")
+	//*/
 	
+	return new_list;
+}
+
+function reduce(ip_list)
+{
+	/*/
+	WScript.StdErr.Write("Reduce\n")
+	var start_time = new Date();
+	//*/
+	
+	var new_list = [];
 	for (var index = 0; index < ip_list.length; index++) 
 	{
 		var delta = ip_list[index]
@@ -192,8 +237,20 @@ function make_ip_filter(ip_list)
 				new_list.push(delta);
 		}
 	}
+	
+	/*/
+	WScript.StdErr.Write((new Date()) - start_time  + "\n")
+	//*/
+	
+	return new_list;
+}
 
-	ip_list = new_list
+function to_string(ip_list)
+{
+	/*/
+	WScript.StdErr.Write("Print\n")
+	var start_time = new Date()
+	//*/
 	
 	for (var index = 0; index < ip_list.length; index++) 
 	{
@@ -208,7 +265,16 @@ function make_ip_filter(ip_list)
 			ip_list[index] = (index > 0 && ip_list[index] >= 0 ? ' ' : '') + ip_list[index].toString(36);
 	}
 	
-	return ip_list.join('')
+	/*/
+	WScript.StdErr.Write((new Date()) - start_time  + "\n")
+	//*/
+	
+	return  ip_list.join('')
+}
+
+function make_ip_filter(ip_list)
+{
+	return to_string(reduce(to_bitset(to_delta(parse(ip_list)))))
 }
 
 if (typeof(WScript) != "undefined")
