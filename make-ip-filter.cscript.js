@@ -273,8 +273,8 @@ function to_string(ip_list)
 }
 
 function make_ip_filter(ip_list)
-{
-	return to_string(reduce(to_bitset(to_delta(parse(ip_list)))))
+{	
+	return to_string(reduce(/*to_bitset*/(to_delta(parse(ip_list)))))
 }
 
 if (typeof(WScript) != "undefined")
