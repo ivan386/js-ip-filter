@@ -264,7 +264,7 @@ function to_string(ip_list)
 	}
 	
 	//*/
-	console.log((new Date()) - start_time  + "\n");
+	console.log((new Date()) - start_time);
 	//*/
 	
 	return  ip_list.join('')
@@ -280,7 +280,17 @@ if (typeof(WScript) != "undefined")
 	console = {log:function(){
 		WScript.StdErr.Write(Array.prototype.join.call(arguments, " ") + "\n")
 	}}
+	//*/
+	console.log("Read")
+	var start_time = new Date()
+	//*/
+	
 	var ip_list = WScript.StdIn.ReadAll().match(/[^,\s]+/g)
+	
+	//*/
+	console.log((new Date()) - start_time);
+	//*/
+	
 	var ip_filter = make_ip_filter(ip_list);
 	WScript.Echo()
 	WScript.Echo('var ip_filter="' + ip_filter + '";');
