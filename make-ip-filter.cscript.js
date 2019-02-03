@@ -1,11 +1,10 @@
 
 function ip_to_number(ip_string)
 {
-	for (var index = 0, ip_number = 0
-		, octets = ip_string.split('.')
-		; octets.length && index < 4
-		; index++ )
-		ip_number |= parseInt(octets.pop(), 10) << (8*index);
+	var octets = ip_string.split('.'), ip_number = 0;
+	if (octets.length == 4)
+		for (var index = 0; index < 4; index++ )
+			ip_number |= octets[3-index] << (8*index);
 	
 	return ip_number;
 }
@@ -21,72 +20,71 @@ function get_ip(value, end)
 function to_bitset(ip_list)
 {
 	//*/
-	WScript.StdErr.Write("Bitset\n")
+	console.log("Bitset")
 	var start_time = new Date()
 	//*/
 	
 	var new_list = []
-	var buffer = []
+	var length = 0;
 	var bits = 0;
 	var gto = 0;
 	var mgto = 3;
+	var compress = function(ip_list, index, length)
+	{
+		for(var acum = -1, bitset = 0; length; index++, length--)
+			bitset |= 1 << (acum+=ip_list[index]);
+		
+		return {bitset: bitset};
+	}
+	
 	for (var index = 0; index < ip_list.length; index++) 
 	{
 		var value = ip_list[index]
 		if 	(typeof(value) == "number")
 		{
-			if (bits + value > 31 && buffer.length >= 4 && gto >= mgto)
+			if (bits + value > 31 && length >= 4 && gto >= mgto)
 			{
-				for(var acum = -1, bitset = 0; buffer.length;)
-					bitset |= 1 << (acum+=buffer.shift());
-				
-				new_list.push({bitset: bitset});
-				gto = bits = 0;
+				new_list.push(compress(ip_list, index - length, length));
+				length = gto = bits = 0;
 			}
 			else
-				while(buffer.length && bits + value > 31)
+				while(length && bits + value > 31)
 				{
-					if ( buffer.length > 1 )
-						gto -= buffer[0] != buffer[1] ? 1 : 0;
+					var push_value = ip_list[index - length]
+					if ( length > 1 )
+						gto -= push_value != ip_list[index - length + 1] ? 1 : 0;
 					
-					bits -= buffer[0];
-					new_list.push(buffer.shift());
+					bits -= push_value;
+					new_list.push(push_value);
+					length--;
 				}
 				
-			if ( buffer.length > 0 )
-				gto += buffer[buffer.length - 1] != value ? 1 : 0;
+			if ( length > 0 )
+				gto += ip_list[index - 1] != value ? 1 : 0;
 			
 			bits += value;
-			buffer.push(value);
+			length++;
 		}
 		else
 		{
-			if (buffer.length >= 4 && gto >= mgto)
-			{
-				for(var acum = -1, bitset = 0; buffer.length;)
-					bitset |= 1 << (acum+=buffer.shift());
-				new_list.push({bitset: bitset})
-			}
+			if (length >= 4 && gto >= mgto)
+				new_list.push(compress(ip_list, index - length, length));
 			else
-				while(buffer.length)
-					new_list.push(buffer.shift());
+				while(length)
+					new_list.push(ip_list[index - (length--)]);
 			
-			gto = bits = 0;
+			length = gto = bits = 0;
 			new_list.push(value);
 		}
 	}
 	
-	if (buffer.length >= 4 && gto >= mgto)
-	{
-		for(var acum = -1, mask = 0; buffer.length;)
-			mask |= 1 << (acum+=buffer.shift());
-		new_list.push({bits: mask})
-	}
-	while(buffer.length)
-		new_list.push(buffer.shift());
+	if (length >= 4 && gto >= mgto)
+		new_list.push(compress(ip_list, index - length, length));
+	while(length)
+		new_list.push(ip_list[index - (length--)]);
 	
 	//*/
-	WScript.StdErr.Write((new Date()) - start_time  + "\n")
+	console.log((new Date()) - start_time)
 	//*/
 	
 	return new_list;
@@ -95,7 +93,7 @@ function to_bitset(ip_list)
 function to_delta(ip_list)
 {
 	//*/
-	WScript.StdErr.Write("Delta sort\n")
+	console.log("Delta sort")
 	var start_time = new Date()
 	//*/
 	
@@ -130,8 +128,8 @@ function to_delta(ip_list)
 	})
 	
 	//*/
-	WScript.StdErr.Write((new Date()) - start_time  + "\n")
-	WScript.StdErr.Write("Delta calc\n")
+	console.log((new Date()) - start_time)
+	console.log("Delta calc")
 	var start_time = new Date()
 	//*/
 	
@@ -166,7 +164,7 @@ function to_delta(ip_list)
 	}
 	
 	//*/
-	WScript.StdErr.Write((new Date()) - start_time  + "\n") 
+	console.log((new Date()) - start_time) 
 	//*/
 	
 	return new_list;
@@ -175,7 +173,7 @@ function to_delta(ip_list)
 function parse(ip_list)
 {
 	//*/
-	WScript.StdErr.Write("Parsing\n")
+	console.log("Parsing")
 	var start_time = new Date()
 	//*/
 	
@@ -196,7 +194,7 @@ function parse(ip_list)
 	}
 	
 	//*/
-	WScript.StdErr.Write((new Date()) - start_time  + "\n")
+	console.log((new Date()) - start_time)
 	//*/
 	
 	return new_list;
@@ -205,7 +203,7 @@ function parse(ip_list)
 function reduce(ip_list)
 {
 	//*/
-	WScript.StdErr.Write("Reduce\n")
+	console.log("Reduce")
 	var start_time = new Date();
 	//*/
 	
@@ -239,7 +237,7 @@ function reduce(ip_list)
 	}
 	
 	//*/
-	WScript.StdErr.Write((new Date()) - start_time  + "\n")
+	console.log((new Date()) - start_time)
 	//*/
 	
 	return new_list;
@@ -248,7 +246,7 @@ function reduce(ip_list)
 function to_string(ip_list)
 {
 	//*/
-	WScript.StdErr.Write("Print\n")
+	console.log("Print")
 	var start_time = new Date()
 	//*/
 	
@@ -266,7 +264,7 @@ function to_string(ip_list)
 	}
 	
 	//*/
-	WScript.StdErr.Write((new Date()) - start_time  + "\n")
+	console.log((new Date()) - start_time  + "\n");
 	//*/
 	
 	return  ip_list.join('')
@@ -274,14 +272,21 @@ function to_string(ip_list)
 
 function make_ip_filter(ip_list)
 {	
-	return to_string(reduce(/*to_bitset*/(to_delta(parse(ip_list)))))
+	return to_string(reduce(to_bitset(to_delta(parse(ip_list)))))
 }
 
 if (typeof(WScript) != "undefined")
 {
+	console = {log:function(){
+		WScript.StdErr.Write(Array.prototype.join.call(arguments, " ") + "\n")
+	}}
 	var ip_list = WScript.StdIn.ReadAll().match(/[^,\s]+/g)
 	var ip_filter = make_ip_filter(ip_list);
 	WScript.Echo()
 	WScript.Echo('var ip_filter="' + ip_filter + '";');
 }
+else if(typeof(console) == "undefined")
+	console = {log:function(){}};
+else if(typeof(console.log) == "undefined")
+	console.log = function(){};
 	
