@@ -1,4 +1,4 @@
-copy /b temp\antizapret-proxy.pac+base85-list-to-ip-list.js+ranges-to-ip-list.js temp\proxy-pac-to-ip-csv.js
+copy /b temp\antizapret-proxy.pac+delta-list-to-ip-list.js+ranges-to-ip-list.js temp\proxy-pac-to-ip-csv.js
 echo WScript.Echo(to_ip_list(d_ipaddr).join(",\n")) >> temp\proxy-pac-to-ip-csv.js
 echo WScript.Echo(ranges_to_ip_list(special).join(",\n")) >> temp\proxy-pac-to-ip-csv.js
 cscript /nologo temp\proxy-pac-to-ip-csv.js > temp\ip-list.csv
