@@ -40,7 +40,7 @@ function to_bitset(ip_list)
 	for (var index = 0; index < ip_list.length; index++) 
 	{
 		var value = ip_list[index]
-		if 	(typeof(value) == "number")
+		if 	(typeof(value) == "number" && index > 0)
 		{
 			if (bits + value > 31 && length >= 4 && gto >= mgto)
 			{
